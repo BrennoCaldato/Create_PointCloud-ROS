@@ -1,0 +1,19 @@
+<package>
+  <description brief="create_pointcloud">
+
+     create_pointcloud
+
+  </description>
+  <author>GMU Student</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <depend package="geometry_msgs"/>
+  <depend package="rospy"/>
+  <depend package="roscpp"/>
+<depend package="laser_geometry"/>
+<depend package="tf"/>
+<depend package="sensor_msgs" />
+
+</package>
+
+

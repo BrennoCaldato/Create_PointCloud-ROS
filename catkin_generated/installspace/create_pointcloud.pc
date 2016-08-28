@@ -1,0 +1,8 @@
+prefix=/home/brennoc/catkin_ws/install
+
+Name: create_pointcloud
+Description: Description of create_pointcloud
+Version: 0.0.0
+Cflags: 
+Libs: -L/home/brennoc/catkin_ws/install/lib 
+Requires: 
