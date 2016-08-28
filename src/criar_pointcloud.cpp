@@ -29,6 +29,7 @@ public:
 	void scanCallback(const sensor_msgs::LaserScan::ConstPtr& scan);
 	void preencher_pointcloud();
 	void mover_ptu(double pan, double tilt);
+	double standard_deviation();
 private:
 	ros::NodeHandle node_;
 	laser_geometry::LaserProjection projector_;
@@ -39,6 +40,8 @@ private:
 
 	int i;
 	float k;
+	double max_intensity, min_intensity, mean_intensity, deviation;
+
 
 };
 
@@ -51,6 +54,10 @@ My_Filter::My_Filter() {
 			false);
 	i = 0;
 	k = -75;
+	max_intensity = 0;
+	min_intensity = 1000;
+	mean_intensity = 0;
+	deviation =0;
 
 }
 
@@ -62,7 +69,7 @@ void My_Filter::mover_ptu(double pan, double tilt) {
 	ptu.velocity.resize(2);
 	ptu.name[0] = "ptu_pan";
 	ptu.position[0] = pan;
-	ptu.velocity[0] = 0.9;
+	ptu.velocity[0] = 0.875;
 	ptu.name[1] = "ptu_tilt";
 	ptu.position[1] = tilt;
 	ptu.velocity[1] = 0.8;
@@ -100,11 +107,23 @@ void My_Filter::preencher_pointcloud() {
 		*iter_x = scan_matrix[i][0];
 		*iter_y = scan_matrix[i][1];
 		*iter_z = scan_matrix[i][2];
-		*iter_r = scan_matrix[i][3] / 10;
-		*iter_g = scan_matrix[i][4] * 10;
-		*iter_b = b;
+		*iter_r = (scan_matrix[i][3]-mean_intensity-4*deviation)/(8*deviation)*255;
+		*iter_g = (scan_matrix[i][3]-mean_intensity-4*deviation)/(8*deviation)*255;	//scan_matrix[i][4] * 10;
+		*iter_b = (scan_matrix[i][3]-mean_intensity-4*deviation)/(8*deviation)*255;
 	}
 	point_cloud_publisher_.publish(points_msg);
+}
+
+double My_Filter::standard_deviation(){
+	double coiso = 0;
+	for(int l = 0 ; l < scan_matrix.size() - 1; l++){
+				 coiso = coiso + pow(scan_matrix[l][3]- mean_intensity , 2);
+			}
+	coiso = sqrt((coiso/(scan_matrix.size() - 2)));
+	return coiso;
+
+
+
 }
 
 void My_Filter::scanCallback(const sensor_msgs::LaserScan::ConstPtr& scan) {
@@ -123,25 +142,42 @@ void My_Filter::scanCallback(const sensor_msgs::LaserScan::ConstPtr& scan) {
 
 		if (k == 75) {
 			k = -75;
+			//ros::Duration(1).sleep(); // sleep
 			My_Filter::mover_ptu(k * M_PI / 180, 0);
 			inicia_movimento = 0;
 		}
-
+		mean_intensity = mean_intensity/scan_matrix.size();	//calcula a media da intensidade
+		//calcula o desvio padrão
+		deviation = standard_deviation();
 		My_Filter::preencher_pointcloud();
 		scan_matrix.clear();
 		ros::Duration(5.0).sleep(); // sleep
 
+
 		mover_ptu((height_cloud) * M_PI / 180, 0.0);
 		inicia_movimento = 1;
 
-		std::cout << "rodouessa parada" << std::endl;
+		std::cout << "rodouessa parada		deviation "<<deviation<<"  min_intensity "<<min_intensity << std::endl;
 
+		mean_intensity = 0;
+		deviation = 0;
 		i = 0;
 
 	} else {
 		if (inicia_movimento == 1) {
 			for (int j = 0; j < (r_laser.ranges.size() - 1); j++) {
+
 				intensidade = r_laser.intensities[j];
+				mean_intensity = mean_intensity + intensidade;
+				// calcula as intensidades maximas e minimas
+				if(intensidade > max_intensity){
+					max_intensity = intensidade;
+				}
+				if(intensidade < min_intensity){
+					min_intensity = intensidade;
+				}
+
+
 				range = r_laser.ranges[j];
 
 				phi = k * (M_PI / 180) * stack_resolution;//angulo entre as leituras do lazer
