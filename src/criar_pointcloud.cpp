@@ -44,7 +44,7 @@ private:
 
 My_Filter::My_Filter() {
 	scan_sub_ = node_.subscribe<sensor_msgs::LaserScan>(
-	scan_topic, 50, &My_Filter::scanCallback, this);
+	scan_topic, 3, &My_Filter::scanCallback, this);
 	point_cloud_publisher_ = node_.advertise<sensor_msgs::PointCloud2>(
 			cloud_topic, 100, false);
 	ptu_publisher = node_.advertise<sensor_msgs::JointState>(ptu_topic, 100,
@@ -62,7 +62,7 @@ void My_Filter::mover_ptu(double pan, double tilt) {
 	ptu.velocity.resize(2);
 	ptu.name[0] = "ptu_pan";
 	ptu.position[0] = pan;
-	ptu.velocity[0] = 0.872;
+	ptu.velocity[0] = 0.9;
 	ptu.name[1] = "ptu_tilt";
 	ptu.position[1] = tilt;
 	ptu.velocity[1] = 0.8;
