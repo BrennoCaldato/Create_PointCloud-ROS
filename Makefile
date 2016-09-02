@@ -150,6 +150,20 @@ depend:
 .PHONY : depend
 
 # Convenience name for target.
+create_pointcloud/CMakeFiles/cloud_to_image.dir/rule:
+	cd /home/brennoc/catkin_ws/src && $(MAKE) -f CMakeFiles/Makefile2 create_pointcloud/CMakeFiles/cloud_to_image.dir/rule
+.PHONY : create_pointcloud/CMakeFiles/cloud_to_image.dir/rule
+
+# Convenience name for target.
+cloud_to_image: create_pointcloud/CMakeFiles/cloud_to_image.dir/rule
+.PHONY : cloud_to_image
+
+# fast build rule for target.
+cloud_to_image/fast:
+	cd /home/brennoc/catkin_ws/src && $(MAKE) -f create_pointcloud/CMakeFiles/cloud_to_image.dir/build.make create_pointcloud/CMakeFiles/cloud_to_image.dir/build
+.PHONY : cloud_to_image/fast
+
+# Convenience name for target.
 create_pointcloud/CMakeFiles/criar_pointcloud.dir/rule:
 	cd /home/brennoc/catkin_ws/src && $(MAKE) -f CMakeFiles/Makefile2 create_pointcloud/CMakeFiles/criar_pointcloud.dir/rule
 .PHONY : create_pointcloud/CMakeFiles/criar_pointcloud.dir/rule
@@ -176,6 +190,30 @@ pointcloud_tf_broadcaster: create_pointcloud/CMakeFiles/pointcloud_tf_broadcaste
 pointcloud_tf_broadcaster/fast:
 	cd /home/brennoc/catkin_ws/src && $(MAKE) -f create_pointcloud/CMakeFiles/pointcloud_tf_broadcaster.dir/build.make create_pointcloud/CMakeFiles/pointcloud_tf_broadcaster.dir/build
 .PHONY : pointcloud_tf_broadcaster/fast
+
+src/cloud_to_image.o: src/cloud_to_image.cpp.o
+.PHONY : src/cloud_to_image.o
+
+# target to build an object file
+src/cloud_to_image.cpp.o:
+	cd /home/brennoc/catkin_ws/src && $(MAKE) -f create_pointcloud/CMakeFiles/cloud_to_image.dir/build.make create_pointcloud/CMakeFiles/cloud_to_image.dir/src/cloud_to_image.cpp.o
+.PHONY : src/cloud_to_image.cpp.o
+
+src/cloud_to_image.i: src/cloud_to_image.cpp.i
+.PHONY : src/cloud_to_image.i
+
+# target to preprocess a source file
+src/cloud_to_image.cpp.i:
+	cd /home/brennoc/catkin_ws/src && $(MAKE) -f create_pointcloud/CMakeFiles/cloud_to_image.dir/build.make create_pointcloud/CMakeFiles/cloud_to_image.dir/src/cloud_to_image.cpp.i
+.PHONY : src/cloud_to_image.cpp.i
+
+src/cloud_to_image.s: src/cloud_to_image.cpp.s
+.PHONY : src/cloud_to_image.s
+
+# target to generate assembly for a file
+src/cloud_to_image.cpp.s:
+	cd /home/brennoc/catkin_ws/src && $(MAKE) -f create_pointcloud/CMakeFiles/cloud_to_image.dir/build.make create_pointcloud/CMakeFiles/cloud_to_image.dir/src/cloud_to_image.cpp.s
+.PHONY : src/cloud_to_image.cpp.s
 
 src/criar_pointcloud.o: src/criar_pointcloud.cpp.o
 .PHONY : src/criar_pointcloud.o
@@ -231,6 +269,7 @@ help:
 	@echo "... all (the default if no target is provided)"
 	@echo "... clean"
 	@echo "... depend"
+	@echo "... cloud_to_image"
 	@echo "... criar_pointcloud"
 	@echo "... edit_cache"
 	@echo "... install"
@@ -240,6 +279,9 @@ help:
 	@echo "... pointcloud_tf_broadcaster"
 	@echo "... rebuild_cache"
 	@echo "... test"
+	@echo "... src/cloud_to_image.o"
+	@echo "... src/cloud_to_image.i"
+	@echo "... src/cloud_to_image.s"
 	@echo "... src/criar_pointcloud.o"
 	@echo "... src/criar_pointcloud.i"
 	@echo "... src/criar_pointcloud.s"

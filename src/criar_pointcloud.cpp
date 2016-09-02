@@ -13,10 +13,11 @@ using namespace sensor_msgs;
 #define scan_topic "/scan"			//"/RosAria/sim_lms2xx_1_laserscan"			//name of laser topic
 #define cloud_topic "/cloud"		//name of pointcloud2 topic
 #define ptu_topic "/cmd"			//name of ptu topic
-#define height_cloud 150				//heith of pointcloud colocar só numeros pares
+#define height_cloud 150			//heith of pointcloud colocar só numeros pares
+#define deslocamento_max 150		//deslocamento maximo do pan-tilt
 #define width_cloud 540
 #define resolution 0.5				//laser resolution in degrees/points
-#define stack_resolution 1		//resolution betwen two laserscans
+#define stack_resolution 1			//resolution betwen two laserscans
 
 //some global variables
 std::vector<std::vector<double> > scan_matrix;
@@ -40,6 +41,7 @@ private:
 
 	int i;
 	float k;
+	double inverte_rotacao;
 	double max_intensity, min_intensity, mean_intensity, deviation;
 
 
@@ -53,11 +55,12 @@ My_Filter::My_Filter() {
 	ptu_publisher = node_.advertise<sensor_msgs::JointState>(ptu_topic, 100,
 			false);
 	i = 0;
-	k = -75;
+	k = -deslocamento_max/2;
 	max_intensity = 0;
 	min_intensity = 1000;
 	mean_intensity = 0;
 	deviation =0;
+	inverte_rotacao = 0;
 
 }
 
@@ -140,24 +143,40 @@ void My_Filter::scanCallback(const sensor_msgs::LaserScan::ConstPtr& scan) {
 
 	if (i == height_cloud) {
 
-		if (k == 75) {
-			k = -75;
-			//ros::Duration(1).sleep(); // sleep
-			My_Filter::mover_ptu(k * M_PI / 180, 0);
+		if (k == deslocamento_max/2) {
 			inicia_movimento = 0;
+			//ros::Duration(1).sleep(); // sleep
+			mean_intensity = mean_intensity/scan_matrix.size();	//calcula a media da intensidade
+			//calcula o desvio padrão
+			deviation = standard_deviation();
+
+			My_Filter::preencher_pointcloud();
+			ros::Duration(1.0).sleep(); // sleep
+
+			My_Filter::mover_ptu(-k * M_PI / 180, 0);
+			inicia_movimento = 1;
+			inverte_rotacao = 1;
+
 		}
-		mean_intensity = mean_intensity/scan_matrix.size();	//calcula a media da intensidade
-		//calcula o desvio padrão
-		deviation = standard_deviation();
-		My_Filter::preencher_pointcloud();
-		scan_matrix.clear();
-		ros::Duration(5.0).sleep(); // sleep
 
+		if (k == -deslocamento_max/2) {
+					inicia_movimento = 0;
+					//ros::Duration(1).sleep(); // sleep
+					mean_intensity = mean_intensity/scan_matrix.size();	//calcula a media da intensidade
+					//calcula o desvio padrão
+					deviation = standard_deviation();
 
-		mover_ptu((height_cloud) * M_PI / 180, 0.0);
-		inicia_movimento = 1;
+					My_Filter::preencher_pointcloud();
+					ros::Duration(1.0).sleep(); // sleep
+
+					My_Filter::mover_ptu(-k * M_PI / 180, 0);
+					inicia_movimento = 1;
+					inverte_rotacao = 0;
+		}
 
 		std::cout << "rodouessa parada		deviation "<<deviation<<"  min_intensity "<<min_intensity << std::endl;
+
+		scan_matrix.clear();
 
 		mean_intensity = 0;
 		deviation = 0;
@@ -200,7 +219,10 @@ void My_Filter::scanCallback(const sensor_msgs::LaserScan::ConstPtr& scan) {
 
 			std::cout << "scan " << k << " i: " << i << std::endl;
 			i++;
-			k++;
+			if(inverte_rotacao == 1)
+				k--;
+			else
+				k++;
 
 			//auto end = std::chrono::high_resolution_clock::now();
 			//std::cout << std::chrono::duration_cast<std::chrono::nanoseconds>(end-begin).count()*1000 << "us" << std::endl;
@@ -235,4 +257,3 @@ int main(int argc, char** argv) {
 	return 0;
 
 }
-
