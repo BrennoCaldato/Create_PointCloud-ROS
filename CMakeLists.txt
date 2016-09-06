@@ -11,20 +11,23 @@ include_directories(${PCL_INCLUDE_DIRS})
 link_directories(${PCL_LIBRARY_DIRS})
 add_definitions(${PCL_DEFINITIONS})
 
+find_package( OpenCV REQUIRED )
+
 catkin_package()
 
 
 include_directories(include ${catkin_INCLUDE_DIRS})
 
 add_executable(criar_pointcloud src/criar_pointcloud.cpp)
-
 target_link_libraries(criar_pointcloud ${catkin_LIBRARIES})
 
 add_executable(pointcloud_tf_broadcaster src/pointcloud_tf_broadcaster.cpp)
-
 target_link_libraries(pointcloud_tf_broadcaster ${catkin_LIBRARIES})
 
 add_executable(cloud_to_image src/cloud_to_image.cpp)
-
 target_link_libraries(cloud_to_image ${PCL_LIBRARIES} ${catkin_LIBRARIES})
+
+add_executable(openCV_teste src/openCV_teste.cpp)
+target_link_libraries(openCV_teste ${OpenCV_LIBS})
+
 
