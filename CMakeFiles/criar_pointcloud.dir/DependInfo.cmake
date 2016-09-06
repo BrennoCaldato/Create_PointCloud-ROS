@@ -29,6 +29,7 @@ SET(CMAKE_C_TARGET_INCLUDE_PATH
   "/usr/include/vtk-5.8"
   "/usr/include/pcl-1.7"
   "/usr/include/ni"
+  "/usr/include/opencv"
   "create_pointcloud/include"
   "/opt/ros/jade/include"
   )

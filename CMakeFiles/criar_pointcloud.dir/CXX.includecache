@@ -21,6 +21,12 @@ vector
 -
 math.h
 -
+opencv2/opencv.hpp
+/home/brennoc/catkin_ws/src/create_pointcloud/src/opencv2/opencv.hpp
+opencv2/core/core.hpp
+/home/brennoc/catkin_ws/src/create_pointcloud/src/opencv2/core/core.hpp
+opencv2/video.hpp
+/home/brennoc/catkin_ws/src/create_pointcloud/src/opencv2/video.hpp
 iostream
 -
 

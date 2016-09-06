@@ -7,6 +7,7 @@ using namespace cv;
 int main(int argc, char** argv)
 {
     VideoCapture cap;
+    Mat dst;//dst image
     Size size(70,140);
     double r,g,b;
     namedWindow("output",CV_WINDOW_FREERATIO);
@@ -19,13 +20,13 @@ int main(int argc, char** argv)
                Mat frame;
                cap >> frame;
                //if( frame.empty() ) break; // end of video stream
-               imshow("this is you, smile! :)", frame);
+               imshow("output", frame);
                //waitKey(0);
 
                //if( waitKey(1) == 27 ) break; // stop capturing by pressing ESC
 
 
-               Mat dst;//dst image
+
                resize(frame,dst,size);//resize image
                //imshow("this is you, smile! :)", dst);
 
@@ -41,7 +42,7 @@ int main(int argc, char** argv)
                }
 
 
-               imshow("output", dst);
+               //imshow("output", dst);
                waitKey(0);
          //}
          // the camera will be closed automatically upon exit

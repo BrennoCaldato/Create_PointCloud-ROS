@@ -19,7 +19,7 @@ catkin_package()
 include_directories(include ${catkin_INCLUDE_DIRS})
 
 add_executable(criar_pointcloud src/criar_pointcloud.cpp)
-target_link_libraries(criar_pointcloud ${catkin_LIBRARIES})
+target_link_libraries(criar_pointcloud ${catkin_LIBRARIES} ${OpenCV_LIBS})
 
 add_executable(pointcloud_tf_broadcaster src/pointcloud_tf_broadcaster.cpp)
 target_link_libraries(pointcloud_tf_broadcaster ${catkin_LIBRARIES})

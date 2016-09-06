@@ -1,0 +1,18 @@
+#IncludeRegexLine: ^[ 	]*#[ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/brennoc/catkin_ws/src/create_pointcloud/src/openCV_teste.cpp
+opencv2/opencv.hpp
+/home/brennoc/catkin_ws/src/create_pointcloud/src/opencv2/opencv.hpp
+opencv2/core/core.hpp
+/home/brennoc/catkin_ws/src/create_pointcloud/src/opencv2/core/core.hpp
+opencv2/video.hpp
+/home/brennoc/catkin_ws/src/create_pointcloud/src/opencv2/video.hpp
+iostream
+/home/brennoc/catkin_ws/src/create_pointcloud/src/iostream
+

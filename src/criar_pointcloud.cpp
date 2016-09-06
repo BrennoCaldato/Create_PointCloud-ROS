@@ -5,6 +5,9 @@
 #include <sensor_msgs/point_cloud2_iterator.h>
 #include <vector>
 #include <math.h>
+#include "opencv2/opencv.hpp"
+#include "opencv2/core/core.hpp"
+#include "opencv2/video.hpp"
 #include <iostream>
 
 using namespace sensor_msgs;
@@ -13,11 +16,11 @@ using namespace sensor_msgs;
 #define scan_topic "/scan"			//"/RosAria/sim_lms2xx_1_laserscan"			//name of laser topic
 #define cloud_topic "/cloud"		//name of pointcloud2 topic
 #define ptu_topic "/cmd"			//name of ptu topic
-#define height_cloud 150			//heith of pointcloud colocar só numeros pares
-#define deslocamento_max 150		//deslocamento maximo do pan-tilt
+#define height_cloud 140			//heith of pointcloud colocar só numeros pares
+#define deslocamento_max 140		//deslocamento maximo do pan-tilt
 #define width_cloud 540
 #define resolution 0.5				//laser resolution in degrees/points
-#define stack_resolution 1			//resolution betwen two laserscans
+#define stack_resolution 0.5			//resolution betwen two laserscans
 
 //some global variables
 std::vector<std::vector<double> > scan_matrix;
@@ -31,6 +34,7 @@ public:
 	void preencher_pointcloud();
 	void mover_ptu(double pan, double tilt);
 	double standard_deviation();
+	void obter_imagem();
 private:
 	ros::NodeHandle node_;
 	laser_geometry::LaserProjection projector_;
@@ -43,7 +47,7 @@ private:
 	float k;
 	double inverte_rotacao;
 	double max_intensity, min_intensity, mean_intensity, deviation;
-
+	double rgb[19600][3];
 
 };
 
@@ -51,16 +55,17 @@ My_Filter::My_Filter() {
 	scan_sub_ = node_.subscribe<sensor_msgs::LaserScan>(
 	scan_topic, 3, &My_Filter::scanCallback, this);
 	point_cloud_publisher_ = node_.advertise<sensor_msgs::PointCloud2>(
-			cloud_topic, 100, false);
+	cloud_topic, 100, false);
 	ptu_publisher = node_.advertise<sensor_msgs::JointState>(ptu_topic, 100,
 			false);
 	i = 0;
-	k = -deslocamento_max/2;
+	k = -deslocamento_max / 2;
 	max_intensity = 0;
 	min_intensity = 1000;
 	mean_intensity = 0;
-	deviation =0;
+	deviation = 0;
 	inverte_rotacao = 0;
+
 
 }
 
@@ -72,7 +77,7 @@ void My_Filter::mover_ptu(double pan, double tilt) {
 	ptu.velocity.resize(2);
 	ptu.name[0] = "ptu_pan";
 	ptu.position[0] = pan;
-	ptu.velocity[0] = 0.875;
+	ptu.velocity[0] = 0.875 * stack_resolution;
 	ptu.name[1] = "ptu_tilt";
 	ptu.position[1] = tilt;
 	ptu.velocity[1] = 0.8;
@@ -110,27 +115,66 @@ void My_Filter::preencher_pointcloud() {
 		*iter_x = scan_matrix[i][0];
 		*iter_y = scan_matrix[i][1];
 		*iter_z = scan_matrix[i][2];
-		*iter_r = (scan_matrix[i][3]-mean_intensity-4*deviation)/(8*deviation)*255;
-		*iter_g = (scan_matrix[i][3]-mean_intensity-4*deviation)/(8*deviation)*255;	//scan_matrix[i][4] * 10;
-		*iter_b = (scan_matrix[i][3]-mean_intensity-4*deviation)/(8*deviation)*255;
+		*iter_r = (scan_matrix[i][3] - mean_intensity - 4 * deviation)
+				/ (8 * deviation) * 255;
+		*iter_g = (scan_matrix[i][3] - mean_intensity - 4 * deviation)
+				/ (8 * deviation) * 255;	//scan_matrix[i][4] * 10;
+		*iter_b = (scan_matrix[i][3] - mean_intensity - 4 * deviation)
+				/ (8 * deviation) * 255;
 	}
 	point_cloud_publisher_.publish(points_msg);
 }
 
-double My_Filter::standard_deviation(){
+double My_Filter::standard_deviation() {
 	double coiso = 0;
-	for(int l = 0 ; l < scan_matrix.size() - 1; l++){
-				 coiso = coiso + pow(scan_matrix[l][3]- mean_intensity , 2);
-			}
-	coiso = sqrt((coiso/(scan_matrix.size() - 2)));
+	for (int l = 0; l < scan_matrix.size() - 1; l++) {
+		coiso = coiso + pow(scan_matrix[l][3] - mean_intensity, 2);
+	}
+	coiso = sqrt((coiso / (scan_matrix.size() - 2)));
 	return coiso;
 
+}
 
+void My_Filter::obter_imagem() {
+
+	cv::VideoCapture cap;
+	cv::Mat dst;	//dst image
+	cv::Size size(70, 140);
+	double r, g, b;
+
+	cv::namedWindow("output", CV_WINDOW_FREERATIO);
+	// open the default camera, use something different from 0 otherwise;
+	// Check VideoCapture documentation.
+	if (!cap.open(0))
+		std::cout<<" não foi possivel abrir a camera";
+	//for(;;)
+	//{
+	cv::Mat frame;
+	cap >> frame;
+	//if( frame.empty() ) break; // end of video stream
+	imshow("output", frame);
+	//waitKey(0);
+
+	//if( waitKey(1) == 27 ) break; // stop capturing by pressing ESC
+
+	resize(frame, dst, size);	         //resize image
+	//imshow("this is you, smile! :)", dst);
+
+	for (int i = 0; i < dst.rows; i++) {
+		for (int j = 0; j < dst.cols; j++) {
+			rgb[i*10+j][0] = dst.at<cv::Vec3b>(i, j)[0];
+			g = dst.at<cv::Vec3b>(i, j)[1];
+			b = dst.at<cv::Vec3b>(i, j)[2];
+
+			std::cout << r << " " << g << " " << b << std::endl;
+
+		}
+	}
 
 }
 
 void My_Filter::scanCallback(const sensor_msgs::LaserScan::ConstPtr& scan) {
-	std::cout << "movimento = "<< inicia_movimento << std::endl;
+	std::cout << "movimento = " << inicia_movimento << std::endl;
 	//auto begin = chrono::chrono::high_resolution_clock::now();
 
 	double theta, phi, r, x, y, z, intensidade, range;
@@ -143,38 +187,41 @@ void My_Filter::scanCallback(const sensor_msgs::LaserScan::ConstPtr& scan) {
 
 	if (i == height_cloud) {
 
-		if (k == deslocamento_max/2) {
+		if (k == deslocamento_max / 2) {
 			inicia_movimento = 0;
 			//ros::Duration(1).sleep(); // sleep
-			mean_intensity = mean_intensity/scan_matrix.size();	//calcula a media da intensidade
-			//calcula o desvio padrão
+			mean_intensity = mean_intensity / scan_matrix.size();//calcula a media da intensidade
+					//calcula o desvio padrão
 			deviation = standard_deviation();
 
+			obter_imagem();
 			My_Filter::preencher_pointcloud();
 			ros::Duration(1.0).sleep(); // sleep
 
-			My_Filter::mover_ptu(-k * M_PI / 180, 0);
+			My_Filter::mover_ptu(-k * (M_PI / 180) * stack_resolution, 0);
 			inicia_movimento = 1;
 			inverte_rotacao = 1;
 
 		}
 
-		if (k == -deslocamento_max/2) {
-					inicia_movimento = 0;
-					//ros::Duration(1).sleep(); // sleep
-					mean_intensity = mean_intensity/scan_matrix.size();	//calcula a media da intensidade
+		if (k == -deslocamento_max / 2) {
+			inicia_movimento = 0;
+			//ros::Duration(1).sleep(); // sleep
+			mean_intensity = mean_intensity / scan_matrix.size();//calcula a media da intensidade
 					//calcula o desvio padrão
-					deviation = standard_deviation();
+			deviation = standard_deviation();
 
-					My_Filter::preencher_pointcloud();
-					ros::Duration(1.0).sleep(); // sleep
+			obter_imagem();
+			My_Filter::preencher_pointcloud();
+			ros::Duration(1.0).sleep(); // sleep
 
-					My_Filter::mover_ptu(-k * M_PI / 180, 0);
-					inicia_movimento = 1;
-					inverte_rotacao = 0;
+			My_Filter::mover_ptu(-k * (M_PI / 180) * stack_resolution, 0);
+			inicia_movimento = 1;
+			inverte_rotacao = 0;
 		}
 
-		std::cout << "rodouessa parada		deviation "<<deviation<<"  min_intensity "<<min_intensity << std::endl;
+		std::cout << "rodouessa parada		deviation " << deviation
+				<< "  min_intensity " << min_intensity << std::endl;
 
 		scan_matrix.clear();
 
@@ -189,18 +236,17 @@ void My_Filter::scanCallback(const sensor_msgs::LaserScan::ConstPtr& scan) {
 				intensidade = r_laser.intensities[j];
 				mean_intensity = mean_intensity + intensidade;
 				// calcula as intensidades maximas e minimas
-				if(intensidade > max_intensity){
+				if (intensidade > max_intensity) {
 					max_intensity = intensidade;
 				}
-				if(intensidade < min_intensity){
+				if (intensidade < min_intensity) {
 					min_intensity = intensidade;
 				}
 
-
 				range = r_laser.ranges[j];
 
-				phi = k * (M_PI / 180) * stack_resolution;//angulo entre as leituras do lazer
-				theta = (j - 270) * (M_PI / 180) * resolution;//angulo entre os pontos de uma mesma leitura
+				phi = k * (M_PI / 180) * stack_resolution; //angulo entre as leituras do lazer
+				theta = (j - 270) * (M_PI / 180) * resolution; //angulo entre os pontos de uma mesma leitura
 				r = r_laser.ranges[j] * std::cos(theta);
 
 				y = r_laser.ranges[j] * std::sin(theta) + 0.045 * std::cos(phi);
@@ -219,7 +265,7 @@ void My_Filter::scanCallback(const sensor_msgs::LaserScan::ConstPtr& scan) {
 
 			std::cout << "scan " << k << " i: " << i << std::endl;
 			i++;
-			if(inverte_rotacao == 1)
+			if (inverte_rotacao == 1)
 				k--;
 			else
 				k++;
@@ -249,7 +295,7 @@ int main(int argc, char** argv) {
 	ros::Duration(5.0).sleep(); // sleep
 
 	//inicia o movimento do ptu
-	filter.mover_ptu((height_cloud) * M_PI / 180, 0.0);
+	filter.mover_ptu((height_cloud) * (M_PI / 180) * stack_resolution, 0.0);
 	inicia_movimento = 1;
 
 	ros::spin();

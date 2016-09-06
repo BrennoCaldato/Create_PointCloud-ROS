@@ -38,6 +38,9 @@ RM = /usr/bin/cmake -E remove -f
 # Escaping for special characters.
 EQUALS = =
 
+# The program to use to edit the cache.
+CMAKE_EDIT_COMMAND = /usr/bin/ccmake
+
 # The top-level source directory on which CMake was run.
 CMAKE_SOURCE_DIR = /home/brennoc/catkin_ws/src
 
@@ -49,8 +52,8 @@ CMAKE_BINARY_DIR = /home/brennoc/catkin_ws/src
 
 # Special rule for the target edit_cache
 edit_cache:
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Running interactive CMake command-line interface..."
-	/usr/bin/cmake -i .
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Running CMake cache editor..."
+	/usr/bin/ccmake -H$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR)
 .PHONY : edit_cache
 
 # Special rule for the target edit_cache
@@ -178,6 +181,20 @@ criar_pointcloud/fast:
 .PHONY : criar_pointcloud/fast
 
 # Convenience name for target.
+create_pointcloud/CMakeFiles/openCV_teste.dir/rule:
+	cd /home/brennoc/catkin_ws/src && $(MAKE) -f CMakeFiles/Makefile2 create_pointcloud/CMakeFiles/openCV_teste.dir/rule
+.PHONY : create_pointcloud/CMakeFiles/openCV_teste.dir/rule
+
+# Convenience name for target.
+openCV_teste: create_pointcloud/CMakeFiles/openCV_teste.dir/rule
+.PHONY : openCV_teste
+
+# fast build rule for target.
+openCV_teste/fast:
+	cd /home/brennoc/catkin_ws/src && $(MAKE) -f create_pointcloud/CMakeFiles/openCV_teste.dir/build.make create_pointcloud/CMakeFiles/openCV_teste.dir/build
+.PHONY : openCV_teste/fast
+
+# Convenience name for target.
 create_pointcloud/CMakeFiles/pointcloud_tf_broadcaster.dir/rule:
 	cd /home/brennoc/catkin_ws/src && $(MAKE) -f CMakeFiles/Makefile2 create_pointcloud/CMakeFiles/pointcloud_tf_broadcaster.dir/rule
 .PHONY : create_pointcloud/CMakeFiles/pointcloud_tf_broadcaster.dir/rule
@@ -239,6 +256,30 @@ src/criar_pointcloud.cpp.s:
 	cd /home/brennoc/catkin_ws/src && $(MAKE) -f create_pointcloud/CMakeFiles/criar_pointcloud.dir/build.make create_pointcloud/CMakeFiles/criar_pointcloud.dir/src/criar_pointcloud.cpp.s
 .PHONY : src/criar_pointcloud.cpp.s
 
+src/openCV_teste.o: src/openCV_teste.cpp.o
+.PHONY : src/openCV_teste.o
+
+# target to build an object file
+src/openCV_teste.cpp.o:
+	cd /home/brennoc/catkin_ws/src && $(MAKE) -f create_pointcloud/CMakeFiles/openCV_teste.dir/build.make create_pointcloud/CMakeFiles/openCV_teste.dir/src/openCV_teste.cpp.o
+.PHONY : src/openCV_teste.cpp.o
+
+src/openCV_teste.i: src/openCV_teste.cpp.i
+.PHONY : src/openCV_teste.i
+
+# target to preprocess a source file
+src/openCV_teste.cpp.i:
+	cd /home/brennoc/catkin_ws/src && $(MAKE) -f create_pointcloud/CMakeFiles/openCV_teste.dir/build.make create_pointcloud/CMakeFiles/openCV_teste.dir/src/openCV_teste.cpp.i
+.PHONY : src/openCV_teste.cpp.i
+
+src/openCV_teste.s: src/openCV_teste.cpp.s
+.PHONY : src/openCV_teste.s
+
+# target to generate assembly for a file
+src/openCV_teste.cpp.s:
+	cd /home/brennoc/catkin_ws/src && $(MAKE) -f create_pointcloud/CMakeFiles/openCV_teste.dir/build.make create_pointcloud/CMakeFiles/openCV_teste.dir/src/openCV_teste.cpp.s
+.PHONY : src/openCV_teste.cpp.s
+
 src/pointcloud_tf_broadcaster.o: src/pointcloud_tf_broadcaster.cpp.o
 .PHONY : src/pointcloud_tf_broadcaster.o
 
@@ -276,6 +317,7 @@ help:
 	@echo "... install/local"
 	@echo "... install/strip"
 	@echo "... list_install_components"
+	@echo "... openCV_teste"
 	@echo "... pointcloud_tf_broadcaster"
 	@echo "... rebuild_cache"
 	@echo "... test"
@@ -285,6 +327,9 @@ help:
 	@echo "... src/criar_pointcloud.o"
 	@echo "... src/criar_pointcloud.i"
 	@echo "... src/criar_pointcloud.s"
+	@echo "... src/openCV_teste.o"
+	@echo "... src/openCV_teste.i"
+	@echo "... src/openCV_teste.s"
 	@echo "... src/pointcloud_tf_broadcaster.o"
 	@echo "... src/pointcloud_tf_broadcaster.i"
 	@echo "... src/pointcloud_tf_broadcaster.s"
