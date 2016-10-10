@@ -18,6 +18,8 @@ int main(int, char**)
         cap >> frame; // get a new frame from camera
         resize(frame, resized, Size(140,140), 0, 0, INTER_LINEAR);
         imshow("edges", resized);
+        if(waitKey(30) >= 0) break;
+	
     }
     waitKey(0);
     // the camera will be deinitialized automatically in VideoCapture destructor

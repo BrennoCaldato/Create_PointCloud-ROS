@@ -208,6 +208,20 @@ pointcloud_tf_broadcaster/fast:
 	cd /home/brennoc/catkin_ws/src && $(MAKE) -f create_pointcloud/CMakeFiles/pointcloud_tf_broadcaster.dir/build.make create_pointcloud/CMakeFiles/pointcloud_tf_broadcaster.dir/build
 .PHONY : pointcloud_tf_broadcaster/fast
 
+# Convenience name for target.
+create_pointcloud/CMakeFiles/transform_odom_to_map.dir/rule:
+	cd /home/brennoc/catkin_ws/src && $(MAKE) -f CMakeFiles/Makefile2 create_pointcloud/CMakeFiles/transform_odom_to_map.dir/rule
+.PHONY : create_pointcloud/CMakeFiles/transform_odom_to_map.dir/rule
+
+# Convenience name for target.
+transform_odom_to_map: create_pointcloud/CMakeFiles/transform_odom_to_map.dir/rule
+.PHONY : transform_odom_to_map
+
+# fast build rule for target.
+transform_odom_to_map/fast:
+	cd /home/brennoc/catkin_ws/src && $(MAKE) -f create_pointcloud/CMakeFiles/transform_odom_to_map.dir/build.make create_pointcloud/CMakeFiles/transform_odom_to_map.dir/build
+.PHONY : transform_odom_to_map/fast
+
 src/cloud_to_image.o: src/cloud_to_image.cpp.o
 .PHONY : src/cloud_to_image.o
 
@@ -304,6 +318,30 @@ src/pointcloud_tf_broadcaster.cpp.s:
 	cd /home/brennoc/catkin_ws/src && $(MAKE) -f create_pointcloud/CMakeFiles/pointcloud_tf_broadcaster.dir/build.make create_pointcloud/CMakeFiles/pointcloud_tf_broadcaster.dir/src/pointcloud_tf_broadcaster.cpp.s
 .PHONY : src/pointcloud_tf_broadcaster.cpp.s
 
+src/transform_odom_to_map.o: src/transform_odom_to_map.cpp.o
+.PHONY : src/transform_odom_to_map.o
+
+# target to build an object file
+src/transform_odom_to_map.cpp.o:
+	cd /home/brennoc/catkin_ws/src && $(MAKE) -f create_pointcloud/CMakeFiles/transform_odom_to_map.dir/build.make create_pointcloud/CMakeFiles/transform_odom_to_map.dir/src/transform_odom_to_map.cpp.o
+.PHONY : src/transform_odom_to_map.cpp.o
+
+src/transform_odom_to_map.i: src/transform_odom_to_map.cpp.i
+.PHONY : src/transform_odom_to_map.i
+
+# target to preprocess a source file
+src/transform_odom_to_map.cpp.i:
+	cd /home/brennoc/catkin_ws/src && $(MAKE) -f create_pointcloud/CMakeFiles/transform_odom_to_map.dir/build.make create_pointcloud/CMakeFiles/transform_odom_to_map.dir/src/transform_odom_to_map.cpp.i
+.PHONY : src/transform_odom_to_map.cpp.i
+
+src/transform_odom_to_map.s: src/transform_odom_to_map.cpp.s
+.PHONY : src/transform_odom_to_map.s
+
+# target to generate assembly for a file
+src/transform_odom_to_map.cpp.s:
+	cd /home/brennoc/catkin_ws/src && $(MAKE) -f create_pointcloud/CMakeFiles/transform_odom_to_map.dir/build.make create_pointcloud/CMakeFiles/transform_odom_to_map.dir/src/transform_odom_to_map.cpp.s
+.PHONY : src/transform_odom_to_map.cpp.s
+
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -321,6 +359,7 @@ help:
 	@echo "... pointcloud_tf_broadcaster"
 	@echo "... rebuild_cache"
 	@echo "... test"
+	@echo "... transform_odom_to_map"
 	@echo "... src/cloud_to_image.o"
 	@echo "... src/cloud_to_image.i"
 	@echo "... src/cloud_to_image.s"
@@ -333,6 +372,9 @@ help:
 	@echo "... src/pointcloud_tf_broadcaster.o"
 	@echo "... src/pointcloud_tf_broadcaster.i"
 	@echo "... src/pointcloud_tf_broadcaster.s"
+	@echo "... src/transform_odom_to_map.o"
+	@echo "... src/transform_odom_to_map.i"
+	@echo "... src/transform_odom_to_map.s"
 .PHONY : help
 
 

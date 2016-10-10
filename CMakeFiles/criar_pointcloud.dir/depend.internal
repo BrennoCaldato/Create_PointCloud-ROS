@@ -5,6 +5,7 @@ create_pointcloud/CMakeFiles/criar_pointcloud.dir/src/criar_pointcloud.cpp.o
  /home/brennoc/catkin_ws/src/create_pointcloud/src/criar_pointcloud.cpp
  /opt/ros/jade/include/XmlRpcDecl.h
  /opt/ros/jade/include/XmlRpcValue.h
+ /opt/ros/jade/include/cv_bridge/cv_bridge.h
  /opt/ros/jade/include/geometry_msgs/Point.h
  /opt/ros/jade/include/geometry_msgs/Point32.h
  /opt/ros/jade/include/geometry_msgs/PointStamped.h
@@ -18,6 +19,15 @@ create_pointcloud/CMakeFiles/criar_pointcloud.dir/src/criar_pointcloud.cpp.o
  /opt/ros/jade/include/geometry_msgs/TwistStamped.h
  /opt/ros/jade/include/geometry_msgs/Vector3.h
  /opt/ros/jade/include/geometry_msgs/Vector3Stamped.h
+ /opt/ros/jade/include/image_transport/camera_publisher.h
+ /opt/ros/jade/include/image_transport/camera_subscriber.h
+ /opt/ros/jade/include/image_transport/exception.h
+ /opt/ros/jade/include/image_transport/image_transport.h
+ /opt/ros/jade/include/image_transport/loader_fwds.h
+ /opt/ros/jade/include/image_transport/publisher.h
+ /opt/ros/jade/include/image_transport/single_subscriber_publisher.h
+ /opt/ros/jade/include/image_transport/subscriber.h
+ /opt/ros/jade/include/image_transport/transport_hints.h
  /opt/ros/jade/include/laser_geometry/laser_geometry.h
  /opt/ros/jade/include/ros/advertise_options.h
  /opt/ros/jade/include/ros/advertise_service_options.h
@@ -73,12 +83,17 @@ create_pointcloud/CMakeFiles/criar_pointcloud.dir/src/criar_pointcloud.cpp.o
  /opt/ros/jade/include/ros/wall_timer.h
  /opt/ros/jade/include/ros/wall_timer_options.h
  /opt/ros/jade/include/rosconsole/macros_generated.h
+ /opt/ros/jade/include/sensor_msgs/CameraInfo.h
  /opt/ros/jade/include/sensor_msgs/ChannelFloat32.h
+ /opt/ros/jade/include/sensor_msgs/CompressedImage.h
+ /opt/ros/jade/include/sensor_msgs/Image.h
  /opt/ros/jade/include/sensor_msgs/JointState.h
  /opt/ros/jade/include/sensor_msgs/LaserScan.h
  /opt/ros/jade/include/sensor_msgs/PointCloud.h
  /opt/ros/jade/include/sensor_msgs/PointCloud2.h
  /opt/ros/jade/include/sensor_msgs/PointField.h
+ /opt/ros/jade/include/sensor_msgs/RegionOfInterest.h
+ /opt/ros/jade/include/sensor_msgs/image_encodings.h
  /opt/ros/jade/include/sensor_msgs/impl/point_cloud2_iterator.h
  /opt/ros/jade/include/sensor_msgs/point_cloud2_iterator.h
  /opt/ros/jade/include/std_msgs/Header.h

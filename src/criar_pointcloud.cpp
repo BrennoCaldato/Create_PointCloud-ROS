@@ -3,12 +3,16 @@
 #include <sensor_msgs/PointCloud2.h>
 #include <sensor_msgs/JointState.h>
 #include <sensor_msgs/point_cloud2_iterator.h>
+#include <cv_bridge/cv_bridge.h>
+#include <sensor_msgs/image_encodings.h>
+#include <image_transport/image_transport.h>
 #include <vector>
 #include <math.h>
 #include "opencv2/opencv.hpp"
 #include "opencv2/core/core.hpp"
 #include "opencv2/video.hpp"
 #include <iostream>
+#include <fstream>
 
 using namespace sensor_msgs;
 
@@ -21,6 +25,7 @@ using namespace sensor_msgs;
 #define width_cloud 540
 #define resolution 0.5				//laser resolution in degrees/points
 #define stack_resolution 0.5			//resolution betwen two laserscans
+#define color_rgb 1					//1 if use a rgb camera or 0 if don't
 
 //some global variables
 std::vector<std::vector<double> > scan_matrix;
@@ -35,40 +40,48 @@ public:
 	void mover_ptu(double pan, double tilt);
 	double standard_deviation();
 	void obter_imagem();
+	void depth_image();
+
 private:
 	ros::NodeHandle node_;
 	laser_geometry::LaserProjection projector_;
-
+	image_transport::ImageTransport it ;
 	ros::Publisher point_cloud_publisher_;
 	ros::Publisher ptu_publisher;
 	ros::Subscriber scan_sub_;
+	image_transport::Publisher pub;
 
 	int i;
 	float k;
 	double inverte_rotacao;
 	double max_intensity, min_intensity, mean_intensity, deviation;
+	double max_range, min_range;
 	double rgb[19600][3];
+	float ranges_vec[height_cloud*width_cloud];
+	cv::Mat dst;	//dst image
 
 };
 
 My_Filter::My_Filter() {
-	scan_sub_ = node_.subscribe<sensor_msgs::LaserScan>(
-	scan_topic, 3, &My_Filter::scanCallback, this);
-	point_cloud_publisher_ = node_.advertise<sensor_msgs::PointCloud2>(
-	cloud_topic, 100, false);
-	ptu_publisher = node_.advertise<sensor_msgs::JointState>(ptu_topic, 100,
-			false);
+	scan_sub_ = node_.subscribe<sensor_msgs::LaserScan>(scan_topic, 3, &My_Filter::scanCallback, this);
+	point_cloud_publisher_ = node_.advertise<sensor_msgs::PointCloud2>(	cloud_topic, 100, false);
+	ptu_publisher = node_.advertise<sensor_msgs::JointState>(ptu_topic, 100, false);
+	pub = it.advertise("/depth_image", 1);
+
 	i = 0;
 	k = -deslocamento_max / 2;
 	max_intensity = 0;
+	max_range = 0;
 	min_intensity = 1000;
+	min_range = 30;
 	mean_intensity = 0;
 	deviation = 0;
 	inverte_rotacao = 0;
-
+	cv::namedWindow("depth", CV_WINDOW_FREERATIO);
 
 }
 
+// executa a movimentação do ptu
 void My_Filter::mover_ptu(double pan, double tilt) {
 	sensor_msgs::JointState ptu;
 	ptu.header.stamp = ros::Time::now();
@@ -86,8 +99,10 @@ void My_Filter::mover_ptu(double pan, double tilt) {
 
 }
 
+// preenche o point cloud com os dados tratados das leituras do laser
 void My_Filter::preencher_pointcloud() {
 	int r = 0, g = 0, b = 0;
+	double intensity_norm;
 	PointCloud2Ptr points_msg = boost::make_shared<PointCloud2>();
 	const sensor_msgs::PointCloud2 cloud_out;
 	points_msg->header.stamp = ros::Time::now();
@@ -98,9 +113,10 @@ void My_Filter::preencher_pointcloud() {
 	points_msg->is_dense = false; // there may be invalid points
 
 	sensor_msgs::PointCloud2Modifier pcd_modifier(*points_msg);
-// this call also resizes the data structure according to the given width, height and fields
+	// this call also resizes the data structure according to the given width, height and fields
 	pcd_modifier.setPointCloud2FieldsByString(2, "xyz", "rgb");
 
+	//set interators for pointcloud
 	sensor_msgs::PointCloud2Iterator<float> iter_x(*points_msg, "x");
 	sensor_msgs::PointCloud2Iterator<float> iter_y(*points_msg, "y");
 	sensor_msgs::PointCloud2Iterator<float> iter_z(*points_msg, "z");
@@ -108,68 +124,124 @@ void My_Filter::preencher_pointcloud() {
 	sensor_msgs::PointCloud2Iterator<uint8_t> iter_g(*points_msg, "g");
 	sensor_msgs::PointCloud2Iterator<uint8_t> iter_b(*points_msg, "b");
 
-	for (size_t i = 0; i < scan_matrix.size() - 1;
-			++i, ++iter_x, ++iter_y, ++iter_z, ++iter_r, ++iter_g, ++iter_b) {
-		// TODO fill in x, y, z, r, g, b local variables
-		//std::cout<<"x: "<<scan_matrix[i][1]<<"y: "<<scan_matrix[i][2]<<"z: "<<scan_matrix[i][3]<< std::endl;
+	int j = 0, k = 0;
+	for (size_t i = 0; i < scan_matrix.size() - 1; ++i, ++iter_x, ++iter_y, ++iter_z, ++iter_r, ++iter_g, ++iter_b) {
+		//normalize intensity values to 0-255
+		intensity_norm = (scan_matrix[i][3] - mean_intensity - 4 * deviation)/ (8 * deviation) * 255;
+		//std::cout <<"j "<<j<<" k "<<k<< "  nao entrou ainda  "<<std::endl;
+
+		if(color_rgb == 1){
+			if (j >= 200 && j <= 340){
+				//std::cout <<"j "<<j<<" k "<<k<<std::endl;
+				*iter_x = scan_matrix[i][0];
+				*iter_y = scan_matrix[i][1];
+				*iter_z = scan_matrix[i][2];
+				*iter_r = dst.at<cv::Vec3b>(j - 200, k)[2];
+				*iter_g = dst.at<cv::Vec3b>(j - 200, k)[1];
+				*iter_b = dst.at<cv::Vec3b>(j - 200, k)[0];
+			}
+			else{
+
+				*iter_x = scan_matrix[i][0];
+				*iter_y = scan_matrix[i][1];
+				*iter_z = scan_matrix[i][2];
+				*iter_r = intensity_norm;
+				*iter_g = intensity_norm;
+				*iter_b = intensity_norm;
+			}
+
+			j++;
+
+			if (j>= 540 ){
+				j = 0;
+				k++;
+			}
+
+		}
+		else{
+
 		*iter_x = scan_matrix[i][0];
 		*iter_y = scan_matrix[i][1];
 		*iter_z = scan_matrix[i][2];
-		*iter_r = (scan_matrix[i][3] - mean_intensity - 4 * deviation)
-				/ (8 * deviation) * 255;
-		*iter_g = (scan_matrix[i][3] - mean_intensity - 4 * deviation)
-				/ (8 * deviation) * 255;	//scan_matrix[i][4] * 10;
-		*iter_b = (scan_matrix[i][3] - mean_intensity - 4 * deviation)
-				/ (8 * deviation) * 255;
+		*iter_r = intensity_norm;
+		*iter_g = intensity_norm;
+		*iter_b = intensity_norm;
+		}
+
 	}
 	point_cloud_publisher_.publish(points_msg);
 }
 
+// calcula o desvio parão dos valores de intensidade e normaliza os valores do range entre 0-255
 double My_Filter::standard_deviation() {
+	std::ofstream myfile;
+	myfile.open ("example.txt");
 	double coiso = 0;
-	for (int l = 0; l < scan_matrix.size() - 1; l++) {
+	for (int l = 0; l < scan_matrix.size(); l++) {
+		// calculo do desvio padão
 		coiso = coiso + pow(scan_matrix[l][3] - mean_intensity, 2);
+
+		//normaliza os valores do range
+		ranges_vec[l] = ( (ranges_vec[l] - min_range) / (max_range - min_range)) * 255;
+		myfile << (int)ranges_vec[l] <<"\n";
 	}
 	coiso = sqrt((coiso / (scan_matrix.size() - 2)));
+	myfile.close();
 	return coiso;
 
 }
 
+
+// obtém uma imagem da webcam
 void My_Filter::obter_imagem() {
+	if (color_rgb == 1) {
+		cv::VideoCapture cap;
+		cv::Size size(140, 140);
+		double r, g, b;
 
-	cv::VideoCapture cap;
-	cv::Mat dst;	//dst image
-	cv::Size size(70, 140);
-	double r, g, b;
+		cv::namedWindow("output", CV_WINDOW_FREERATIO);
+		// open the default camera, use something different from 0 otherwise;
+		// Check VideoCapture documentation.
+		if (!cap.open(1))
+			std::cout << " não foi possivel abrir a camera";
+		//for(;;)
+		//{
+		cv::Mat frame;
+		cap >> frame;
+		cap >> frame;
+		cv::flip(frame,frame,1);
+		//if( frame.empty() ) break; // end of video stream
+		imshow("output", frame);
+		//waitKey(0);
 
-	cv::namedWindow("output", CV_WINDOW_FREERATIO);
-	// open the default camera, use something different from 0 otherwise;
-	// Check VideoCapture documentation.
-	if (!cap.open(0))
-		std::cout<<" não foi possivel abrir a camera";
-	//for(;;)
-	//{
-	cv::Mat frame;
-	cap >> frame;
-	//if( frame.empty() ) break; // end of video stream
-	imshow("output", frame);
-	//waitKey(0);
+		//if( waitKey(1) == 27 ) break; // stop capturing by pressing ESC
 
-	//if( waitKey(1) == 27 ) break; // stop capturing by pressing ESC
+		resize(frame, dst, size);	         //resize image
+		imshow("output", dst);
 
-	resize(frame, dst, size);	         //resize image
-	//imshow("this is you, smile! :)", dst);
-
-	for (int i = 0; i < dst.rows; i++) {
-		for (int j = 0; j < dst.cols; j++) {
-			rgb[i*10+j][0] = dst.at<cv::Vec3b>(i, j)[0];
-			g = dst.at<cv::Vec3b>(i, j)[1];
-			b = dst.at<cv::Vec3b>(i, j)[2];
-
-			std::cout << r << " " << g << " " << b << std::endl;
-
-		}
+//	for (int i = 0; i < dst.rows; i++) {
+//		for (int j = 0; j < dst.cols; j++) {
+//			rgb[i*dst.cols+j][0] = dst.at<cv::Vec3b>(i, j)[0];
+//			g = dst.at<cv::Vec3b>(i, j)[1];
+//			b = dst.at<cv::Vec3b>(i, j)[2];
+//
+//			std::cout << r << " " << g << " " << b << std::endl;
+//
+//		}
+//	}
 	}
+}
+
+// publica uma depth image com os valores do range
+void My_Filter::depth_image(){
+
+	cv::Mat src =  cv::Mat(height_cloud , width_cloud , CV_32FC1,(float*)ranges_vec);
+	src.convertTo( src, CV_8UC1 );
+	std::cout <<src;
+	cv::imshow("depth", src);
+	sensor_msgs::ImagePtr msg = cv_bridge::CvImage(std_msgs::Header(), CV_8UC1, src).toImageMsg();
+
+	pub.publish(msg);
 
 }
 
@@ -193,7 +265,7 @@ void My_Filter::scanCallback(const sensor_msgs::LaserScan::ConstPtr& scan) {
 			mean_intensity = mean_intensity / scan_matrix.size();//calcula a media da intensidade
 					//calcula o desvio padrão
 			deviation = standard_deviation();
-
+			depth_image();
 			obter_imagem();
 			My_Filter::preencher_pointcloud();
 			ros::Duration(1.0).sleep(); // sleep
@@ -207,10 +279,10 @@ void My_Filter::scanCallback(const sensor_msgs::LaserScan::ConstPtr& scan) {
 		if (k == -deslocamento_max / 2) {
 			inicia_movimento = 0;
 			//ros::Duration(1).sleep(); // sleep
-			mean_intensity = mean_intensity / scan_matrix.size();//calcula a media da intensidade
+			mean_intensity = mean_intensity / scan_matrix.size(); //calcula a media da intensidade
 					//calcula o desvio padrão
 			deviation = standard_deviation();
-
+			depth_image();
 			obter_imagem();
 			My_Filter::preencher_pointcloud();
 			ros::Duration(1.0).sleep(); // sleep
@@ -244,6 +316,13 @@ void My_Filter::scanCallback(const sensor_msgs::LaserScan::ConstPtr& scan) {
 				}
 
 				range = r_laser.ranges[j];
+				// calcula os ranges maximos e minimos
+				if (range > max_range) {
+					max_range = range;
+				}
+				if (range < min_range) {
+					min_range = range;
+				}
 
 				phi = k * (M_PI / 180) * stack_resolution; //angulo entre as leituras do lazer
 				theta = (j - 270) * (M_PI / 180) * resolution; //angulo entre os pontos de uma mesma leitura
@@ -257,7 +336,7 @@ void My_Filter::scanCallback(const sensor_msgs::LaserScan::ConstPtr& scan) {
 				linha.push_back(y);
 				linha.push_back(z);
 				linha.push_back(intensidade);
-				linha.push_back(range);
+				ranges_vec[i*width_cloud+j] = r_laser.ranges[j];
 				//std::cout<<"x: "<<x<<" y: "<<y<<" z: "<<linha[2]<< std::endl;
 				scan_matrix.push_back(linha);
 				linha.clear();
@@ -292,7 +371,7 @@ int main(int argc, char** argv) {
 
 	// move o ptu para o inicio do movimento
 	filter.mover_ptu((-75) * M_PI / 180, 0.0);
-	ros::Duration(5.0).sleep(); // sleep
+	ros::Duration(1.0).sleep(); // sleep
 
 	//inicia o movimento do ptu
 	filter.mover_ptu((height_cloud) * (M_PI / 180) * stack_resolution, 0.0);

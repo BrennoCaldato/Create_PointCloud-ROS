@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 2.8.3)
 project(create_pointcloud)
 
 
-find_package(catkin REQUIRED COMPONENTS roscpp geometry_msgs laser_geometry sensor_msgs tf rospy)
+find_package(catkin REQUIRED COMPONENTS roscpp geometry_msgs laser_geometry sensor_msgs tf rospy cv_bridge image_transport)
 find_package(Eigen3 REQUIRED) 
 include_directories(${EIGEN3_INCLUDE_DIR})
 
@@ -23,6 +23,9 @@ target_link_libraries(criar_pointcloud ${catkin_LIBRARIES} ${OpenCV_LIBS})
 
 add_executable(pointcloud_tf_broadcaster src/pointcloud_tf_broadcaster.cpp)
 target_link_libraries(pointcloud_tf_broadcaster ${catkin_LIBRARIES})
+
+add_executable(transform_odom_to_map src/transform_odom_to_map.cpp)
+target_link_libraries(transform_odom_to_map ${catkin_LIBRARIES})
 
 add_executable(cloud_to_image src/cloud_to_image.cpp)
 target_link_libraries(cloud_to_image ${PCL_LIBRARIES} ${catkin_LIBRARIES})
